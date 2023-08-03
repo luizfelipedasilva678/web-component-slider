@@ -1,5 +1,5 @@
 {
-  "name": "web-components-slider",
+  "name": "web-component-slider",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,6 +11,17 @@
     "create-commit-msg-hook": "husky add .husky/commit-msg 'npx commitlint --edit $1'",
     "create-pre-commit-hook": "husky add .husky/pre-commit 'npx lint-staged && git add . -A'",
     "postinstall": "npm run prepare && npm run create-commit-msg-hook && npm run create-pre-commit-hook"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/web-component-slider.umd.cjs",
+  "module": "./dist/web-component-slider.js",
+  "exports": {
+    ".": {
+      "import": "./dist/web-component-slider.js",
+      "require": "./dist/web-component-slider.umd.cjs"
+    }
   },
   "lint-staged": {
     "src/**/*.{ts,js,tsx,jsx}": [
@@ -36,6 +47,7 @@
     "lint-staged": "^13.2.3",
     "prettier": "^3.0.0",
     "typescript": "^5.1.6",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^3.4.0"
   }
 }
