@@ -8,7 +8,6 @@ template.innerHTML = String.raw`
       width: 100%;
     }
 
-    
     #slider-prev,
     #slider-next {
       position: absolute;

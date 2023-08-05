@@ -1,80 +1,96 @@
 import webComponentSliderTemplate from '../templates/web-component-slider-template';
+import { getAssignedElements } from '../utils/dom/getAssignedElements';
+import { addInlineStyles } from '../utils/dom/addInlineStyles';
+import {
+  NEXT_BTN_SELECTOR,
+  PREV_BTN_SELECTOR,
+  SLIDER_TRACK_SELECTOR,
+  SLOT_SELECTOR,
+} from '../constants';
 
 export class WebComponentSlider extends HTMLElement {
-  private readonly _sliderTrack: HTMLElement;
-  private readonly _sliderSlot: HTMLSlotElement;
-  private readonly _width: number;
-  private readonly _nextBtn: HTMLButtonElement;
-  private readonly _prevBtn: HTMLButtonElement;
+  private _tx: number = 0;
+  private totalWidth: number;
+  private nextBtn: HTMLElement;
+  private prevBtn: HTMLElement;
+  private sliderTrack: HTMLElement;
+  private sliderSlot: HTMLSlotElement;
+  private widthPerSlider: number;
+  private minTx: number;
+  private maxTx: number;
 
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     const clone = webComponentSliderTemplate.content.cloneNode(true);
     this.shadowRoot!.appendChild(clone);
-    this._sliderTrack = this.shadowRoot!.getElementById('slider-track')!;
-    this._sliderSlot = this.shadowRoot!.querySelector('slot[name="slide"]')!;
-    this._nextBtn = this.shadowRoot!.getElementById(
-      'slider-next'
-    )! as HTMLButtonElement;
-    this._prevBtn = this.shadowRoot!.getElementById(
-      'slider-prev'
-    )! as HTMLButtonElement;
-    this._width = this.offsetWidth;
+    this.init();
   }
 
-  connectedCallback(): void {
-    this.calcSliderElementsWidth();
-    this.nextSlider();
+  init(): void {
+    this.sliderTrack = this.shadowRoot!.getElementById(SLIDER_TRACK_SELECTOR)!;
+    this.sliderSlot = this.shadowRoot!.querySelector(SLOT_SELECTOR)!;
+    this.nextBtn = this.shadowRoot!.getElementById(NEXT_BTN_SELECTOR)!;
+    this.prevBtn = this.shadowRoot!.getElementById(PREV_BTN_SELECTOR)!;
+    this.widthPerSlider = this.offsetWidth;
+    this.calcTotalWidth();
+    this.setMaxAndMin();
+    this.setSliderTrackWidth();
+    this.setSlidesWidth();
+    this.initNextSlideBtn();
+    this.initPrevSlideBtn();
   }
 
-  nextSlider(): void {
+  initNextSlideBtn(): void {
     this.nextBtn.addEventListener('click', () => {
-      this.sliderTrack.setAttribute(
-        'style',
-        `
-        ${
-          this.sliderTrack.getAttribute('style') ?? ''
-        }transform: translate3d(-560px, 0px, 0px);
-      `
-      );
+      this.tx += this.widthPerSlider;
+      this.sliderTrack.style.transform = `translate3d(-${this.tx}px, 0, 0)`;
     });
   }
 
-  calcSliderElementsWidth(): void {
-    const slides = Array.from(
-      this.sliderSlot.assignedElements()
-    ) as HTMLElement[];
+  initPrevSlideBtn(): void {
+    this.prevBtn.addEventListener('click', () => {
+      this.tx -= this.widthPerSlider;
+      this.sliderTrack.style.transform = `translate3d(-${this.tx}px, 0, 0)`;
+    });
+  }
+
+  setMaxAndMin(): void {
+    this.maxTx = this.totalWidth - this.widthPerSlider;
+    this.minTx = 0;
+  }
+
+  calcTotalWidth(): void {
+    const slides = getAssignedElements(this.sliderSlot);
     let totalWidth = 0;
 
     for (const slide of slides) {
-      slide.setAttribute('style', `width: ${this.width}px`);
       totalWidth += slide.offsetWidth;
     }
 
-    this.sliderTrack.setAttribute(
-      'style',
-      `width: ${totalWidth}px; display: flex;`
-    );
+    this.totalWidth = totalWidth;
   }
 
-  get sliderTrack(): HTMLElement {
-    return this._sliderTrack;
+  setSliderTrackWidth(): void {
+    addInlineStyles(this.sliderTrack, {
+      width: `${this.totalWidth}px`,
+      display: 'flex',
+    });
   }
 
-  get sliderSlot(): HTMLSlotElement {
-    return this._sliderSlot;
+  setSlidesWidth(): void {
+    const slides = getAssignedElements(this.sliderSlot);
+
+    for (const slide of slides) {
+      addInlineStyles(slide, { width: `${this.widthPerSlider}px` });
+    }
   }
 
-  get width(): number {
-    return this._width;
+  set tx(newTx: number) {
+    if (newTx >= this.minTx && newTx <= this.maxTx) this._tx = newTx;
   }
 
-  get nextBtn(): HTMLButtonElement {
-    return this._nextBtn;
-  }
-
-  get prevBtn(): HTMLButtonElement {
-    return this._prevBtn;
+  get tx(): number {
+    return this._tx;
   }
 }
