@@ -1,6 +1,9 @@
 import webComponentSliderTemplate from '../templates/web-component-slider-template';
-import { getAssignedElements } from '../utils/dom/getAssignedElements';
+import { getAssignedElements } from '../utils/dom/getAssinedElements';
 import { addInlineStyles } from '../utils/dom/addInlineStyles';
+import { addEvent } from '../utils/dom/addEvent';
+import { onResize } from '../utils/dom/onResize';
+import { type Direction } from '../typings';
 import {
   NEXT_BTN_SELECTOR,
   PREV_BTN_SELECTOR,
@@ -9,7 +12,7 @@ import {
 } from '../constants';
 
 export class WebComponentSlider extends HTMLElement {
-  private _tx: number = 0;
+  private _tx: number;
   private totalWidth: number;
   private nextBtn: HTMLElement;
   private prevBtn: HTMLElement;
@@ -25,49 +28,56 @@ export class WebComponentSlider extends HTMLElement {
     const clone = webComponentSliderTemplate.content.cloneNode(true);
     this.shadowRoot!.appendChild(clone);
     this.init();
+    this.initNextSlideBtn();
+    this.initPrevSlideBtn();
   }
 
   init(): void {
+    this.setSliderElements();
+    this.setSliderMeasures(this.offsetWidth);
+    onResize(this, this.setSliderMeasures.bind(this));
+  }
+
+  setSliderMeasures(width: number): void {
+    this.widthPerSlider = width;
+    console.log(this.widthPerSlider);
+    this.calcTotalWidth();
+    this.setMaxAndMin();
+    this.tx = 0;
+    this.setSliderTrackWidth();
+    this.setSlidesWidth();
+    addInlineStyles(this.sliderTrack, {
+      transform: 'translate3d(0, 0, 0)',
+    });
+  }
+
+  setSliderElements(): void {
     this.sliderTrack = this.shadowRoot!.getElementById(SLIDER_TRACK_SELECTOR)!;
     this.sliderSlot = this.shadowRoot!.querySelector(SLOT_SELECTOR)!;
     this.nextBtn = this.shadowRoot!.getElementById(NEXT_BTN_SELECTOR)!;
     this.prevBtn = this.shadowRoot!.getElementById(PREV_BTN_SELECTOR)!;
-    this.widthPerSlider = this.offsetWidth;
-    this.calcTotalWidth();
-    this.setMaxAndMin();
-    this.setSliderTrackWidth();
-    this.setSlidesWidth();
-    this.initNextSlideBtn();
-    this.initPrevSlideBtn();
+  }
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.contentRect.width !== this.widthPerSlider) {
-          this.widthPerSlider = entry.contentRect.width;
-          this.calcTotalWidth();
-          this.setMaxAndMin();
-          this.setSliderTrackWidth();
-          this.setSlidesWidth();
-          this.sliderTrack.style.transform = `translate3d(0, 0, 0)`;
-          this.tx = 0;
-        }
-      }
+  sliderDirection(direction: Direction): void {
+    this.tx =
+      direction === 'forward'
+        ? this.tx + this.widthPerSlider
+        : this.tx - this.widthPerSlider;
+
+    addInlineStyles(this.sliderTrack, {
+      transform: `translate3d(-${this.tx}px, 0, 0)`,
     });
-
-    resizeObserver.observe(this);
   }
 
   initNextSlideBtn(): void {
-    this.nextBtn.addEventListener('click', () => {
-      this.tx += this.widthPerSlider;
-      this.sliderTrack.style.transform = `translate3d(-${this.tx}px, 0, 0)`;
+    addEvent('click', this.nextBtn, () => {
+      this.sliderDirection('forward');
     });
   }
 
   initPrevSlideBtn(): void {
-    this.prevBtn.addEventListener('click', () => {
-      this.tx -= this.widthPerSlider;
-      this.sliderTrack.style.transform = `translate3d(-${this.tx}px, 0, 0)`;
+    addEvent('click', this.prevBtn, () => {
+      this.sliderDirection('backward');
     });
   }
 
@@ -101,7 +111,9 @@ export class WebComponentSlider extends HTMLElement {
       this._tx = 0;
     }
 
-    if (newTx >= this.minTx && newTx <= this.maxTx) this._tx = newTx;
+    if (newTx >= this.minTx && newTx <= this.maxTx) {
+      this._tx = newTx;
+    }
   }
 
   get tx(): number {
