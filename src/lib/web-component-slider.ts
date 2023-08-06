@@ -39,6 +39,22 @@ export class WebComponentSlider extends HTMLElement {
     this.setSlidesWidth();
     this.initNextSlideBtn();
     this.initPrevSlideBtn();
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width !== this.widthPerSlider) {
+          this.widthPerSlider = entry.contentRect.width;
+          this.calcTotalWidth();
+          this.setMaxAndMin();
+          this.setSliderTrackWidth();
+          this.setSlidesWidth();
+          this.sliderTrack.style.transform = `translate3d(0, 0, 0)`;
+          this.tx = 0;
+        }
+      }
+    });
+
+    resizeObserver.observe(this);
   }
 
   initNextSlideBtn(): void {
@@ -62,13 +78,7 @@ export class WebComponentSlider extends HTMLElement {
 
   calcTotalWidth(): void {
     const slides = getAssignedElements(this.sliderSlot);
-    let totalWidth = 0;
-
-    for (const slide of slides) {
-      totalWidth += slide.offsetWidth;
-    }
-
-    this.totalWidth = totalWidth;
+    this.totalWidth = this.widthPerSlider * slides.length;
   }
 
   setSliderTrackWidth(): void {
@@ -87,6 +97,10 @@ export class WebComponentSlider extends HTMLElement {
   }
 
   set tx(newTx: number) {
+    if (newTx < 0) {
+      this._tx = 0;
+    }
+
     if (newTx >= this.minTx && newTx <= this.maxTx) this._tx = newTx;
   }
 
