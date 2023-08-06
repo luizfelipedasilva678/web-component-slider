@@ -41,17 +41,18 @@ export class WebComponentSlider extends HTMLElement {
 
   init(): void {
     this.setSliderElements();
-    this.setSliderMeasures(this.offsetWidth);
     this.createDots();
-    this.handleDotStyles();
-    onResize(this, this.setSliderMeasures.bind(this));
+    this.initSliderConfigs(this.offsetWidth);
+    onResize(this, this.initSliderConfigs.bind(this));
   }
 
-  setSliderMeasures(width: number): void {
+  initSliderConfigs(width: number): void {
     this.widthPerSlider = width;
+    this.tx = 0;
     this.calcTotalWidth();
     this.setMaxAndMin();
-    this.tx = 0;
+    this.setDotsPosition();
+    this.handleDotStyles();
     this.setSliderTrackWidth();
     this.setSlidesWidth();
     addInlineStyles(this.sliderTrack, {
@@ -79,17 +80,35 @@ export class WebComponentSlider extends HTMLElement {
     }
   }
 
+  setDotsPosition(): void {
+    for (const [i, dot] of this.sliderDots
+      .querySelectorAll('button')
+      .entries()) {
+      setOnDataset(dot, 'slidePosition', String(this.widthPerSlider * i));
+    }
+  }
+
   createDots(): void {
     const slides = getAssignedElements(this.sliderSlot);
 
-    for (const [i] of slides.entries()) {
+    slides.forEach(() => {
       const li = createElement('li');
       const button = createElement('button');
-      setOnDataset(button, 'slidePosition', String(this.widthPerSlider * i));
       addClass(button, 'slider-dot');
       li.appendChild(button);
       this.sliderDots.appendChild(li);
-    }
+      addEvent('click', button, () => {
+        const position = getFromDataset(button, 'slidePosition');
+
+        if (position !== undefined) {
+          this.tx = Number(position);
+          this.handleDotStyles();
+          addInlineStyles(this.sliderTrack, {
+            transform: `translate3d(-${this.tx}px, 0, 0)`,
+          });
+        }
+      });
+    });
   }
 
   sliderDirection(direction: Direction): void {
@@ -127,7 +146,6 @@ export class WebComponentSlider extends HTMLElement {
   setSliderTrackWidth(): void {
     addInlineStyles(this.sliderTrack, {
       width: `${this.totalWidth}px`,
-      display: 'flex',
     });
   }
 

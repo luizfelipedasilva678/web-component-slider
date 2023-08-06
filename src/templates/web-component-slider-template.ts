@@ -8,6 +8,10 @@ template.innerHTML = String.raw`
       width: 100%;
     }
 
+    #slider-track {
+      display: flex;
+    }
+
     #slider-prev,
     #slider-next {
       position: absolute;
@@ -30,6 +34,7 @@ template.innerHTML = String.raw`
     #slider-dots .slider-dot {
       background: transparent;
       border: none;
+      cursor: pointer;
     }
 
     #slider-dots .slider-dot::after {
