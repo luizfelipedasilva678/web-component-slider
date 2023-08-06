@@ -4,9 +4,15 @@ import { addInlineStyles } from '../utils/dom/addInlineStyles';
 import { addEvent } from '../utils/dom/addEvent';
 import { onResize } from '../utils/dom/onResize';
 import { type Direction } from '../typings';
+import { createElement } from '../utils/dom/createElement';
+import { setOnDataset } from '../utils/dom/setOnDataset';
+import { addClass } from '../utils/dom/addClass';
+import { getFromDataset } from '../utils/dom/getFromDataset';
+import { removeClass } from '../utils/dom/removeClass';
 import {
   NEXT_BTN_SELECTOR,
   PREV_BTN_SELECTOR,
+  SLIDER_DOTS_SELECTOR,
   SLIDER_TRACK_SELECTOR,
   SLOT_SELECTOR,
 } from '../constants';
@@ -17,6 +23,7 @@ export class WebComponentSlider extends HTMLElement {
   private nextBtn: HTMLElement;
   private prevBtn: HTMLElement;
   private sliderTrack: HTMLElement;
+  private sliderDots: HTMLElement;
   private sliderSlot: HTMLSlotElement;
   private widthPerSlider: number;
   private minTx: number;
@@ -35,12 +42,13 @@ export class WebComponentSlider extends HTMLElement {
   init(): void {
     this.setSliderElements();
     this.setSliderMeasures(this.offsetWidth);
+    this.createDots();
+    this.handleDotStyles();
     onResize(this, this.setSliderMeasures.bind(this));
   }
 
   setSliderMeasures(width: number): void {
     this.widthPerSlider = width;
-    console.log(this.widthPerSlider);
     this.calcTotalWidth();
     this.setMaxAndMin();
     this.tx = 0;
@@ -56,14 +64,39 @@ export class WebComponentSlider extends HTMLElement {
     this.sliderSlot = this.shadowRoot!.querySelector(SLOT_SELECTOR)!;
     this.nextBtn = this.shadowRoot!.getElementById(NEXT_BTN_SELECTOR)!;
     this.prevBtn = this.shadowRoot!.getElementById(PREV_BTN_SELECTOR)!;
+    this.sliderDots = this.shadowRoot!.getElementById(SLIDER_DOTS_SELECTOR)!;
+  }
+
+  handleDotStyles(): void {
+    for (const dot of this.sliderDots.querySelectorAll('button')) {
+      const dotPosition = Number(getFromDataset(dot, 'slidePosition'));
+
+      if (dotPosition === this.tx) {
+        addClass(dot, 'slider-dot-active');
+      } else {
+        removeClass(dot, 'slider-dot-active');
+      }
+    }
+  }
+
+  createDots(): void {
+    const slides = getAssignedElements(this.sliderSlot);
+
+    for (const [i] of slides.entries()) {
+      const li = createElement('li');
+      const button = createElement('button');
+      setOnDataset(button, 'slidePosition', String(this.widthPerSlider * i));
+      addClass(button, 'slider-dot');
+      li.appendChild(button);
+      this.sliderDots.appendChild(li);
+    }
   }
 
   sliderDirection(direction: Direction): void {
-    this.tx =
-      direction === 'forward'
-        ? this.tx + this.widthPerSlider
-        : this.tx - this.widthPerSlider;
+    if (direction === 'forward') this.tx += this.widthPerSlider;
+    if (direction === 'backward') this.tx -= this.widthPerSlider;
 
+    this.handleDotStyles();
     addInlineStyles(this.sliderTrack, {
       transform: `translate3d(-${this.tx}px, 0, 0)`,
     });
@@ -102,18 +135,19 @@ export class WebComponentSlider extends HTMLElement {
     const slides = getAssignedElements(this.sliderSlot);
 
     for (const slide of slides) {
-      addInlineStyles(slide, { width: `${this.widthPerSlider}px` });
+      addInlineStyles(slide, {
+        width: `${this.widthPerSlider}px`,
+      });
     }
   }
 
   set tx(newTx: number) {
     if (newTx < 0) {
       this._tx = 0;
+      return;
     }
 
-    if (newTx >= this.minTx && newTx <= this.maxTx) {
-      this._tx = newTx;
-    }
+    if (newTx >= this.minTx && newTx <= this.maxTx) this._tx = newTx;
   }
 
   get tx(): number {
