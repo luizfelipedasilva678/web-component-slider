@@ -1,7 +1,7 @@
 export const setOnDataset = (
-  el: HTMLElement,
+  el: HTMLElement | null,
   prop: string,
   value: string
 ): void => {
-  el.dataset[prop] = value;
+  if (el != null) el.dataset[prop] = value;
 };

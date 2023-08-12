@@ -1,16 +1,14 @@
 export const onResize = (
-  el: Element,
+  el: Element | null,
   cb: (width: number) => void
-): (() => void) => {
+): ResizeObserver => {
   const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
       cb(entry.contentRect.width);
     }
   });
 
-  resizeObserver.observe(el);
+  if (el != null) resizeObserver.observe(el);
 
-  return () => {
-    resizeObserver.disconnect();
-  };
+  return resizeObserver;
 };

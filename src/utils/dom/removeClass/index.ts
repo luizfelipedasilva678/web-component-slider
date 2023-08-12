@@ -1,3 +1,3 @@
-export const removeClass = (el: HTMLElement, name: string): void => {
-  el.classList.remove(name);
+export const removeClass = (el: HTMLElement | null, name: string): void => {
+  if (el != null) el.classList.remove(name);
 };
