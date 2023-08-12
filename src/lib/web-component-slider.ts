@@ -9,6 +9,7 @@ import { setOnDataset } from '../utils/dom/setOnDataset';
 import { addClass } from '../utils/dom/addClass';
 import { getFromDataset } from '../utils/dom/getFromDataset';
 import { removeClass } from '../utils/dom/removeClass';
+import { queryAll } from '../utils/dom/queryAll';
 import {
   NEXT_BTN_SELECTOR,
   PREV_BTN_SELECTOR,
@@ -52,7 +53,7 @@ export class WebComponentSlider extends HTMLElement {
     this.calcTotalWidth();
     this.setMaxAndMin();
     this.setDotsPosition();
-    this.handleDotStyles();
+    this.setDotStyles();
     this.setSliderTrackWidth();
     this.setSlidesWidth();
     addInlineStyles(this.sliderTrack, {
@@ -68,7 +69,7 @@ export class WebComponentSlider extends HTMLElement {
     this.sliderDots = this.shadowRoot!.getElementById(SLIDER_DOTS_SELECTOR)!;
   }
 
-  handleDotStyles(): void {
+  setDotStyles(): void {
     for (const dot of this.sliderDots.querySelectorAll('button')) {
       const dotPosition = Number(getFromDataset(dot, 'slideOffset'));
 
@@ -81,9 +82,10 @@ export class WebComponentSlider extends HTMLElement {
   }
 
   setDotsPosition(): void {
-    for (const [i, dot] of this.sliderDots
-      .querySelectorAll('button')
-      .entries()) {
+    for (const [i, dot] of queryAll<HTMLElement>(
+      this.sliderDots,
+      'button'
+    ).entries()) {
       setOnDataset(dot, 'slideOffset', String(this.slideOffset * i));
     }
   }
@@ -91,31 +93,35 @@ export class WebComponentSlider extends HTMLElement {
   createDots(): void {
     const slides = getAssignedElements(this.sliderSlot);
 
-    slides.forEach(() => {
+    for (let i = 0; i < slides.length; i++) {
       const li = createElement('li');
       const button = createElement('button');
       addClass(button, 'slider-dot');
       li.appendChild(button);
       this.sliderDots.appendChild(li);
       addEvent('click', button, () => {
-        const position = getFromDataset(button, 'slideOffset');
-
-        if (position !== undefined) {
-          this.offset = Number(position);
-          this.handleDotStyles();
-          addInlineStyles(this.sliderTrack, {
-            transform: `translate3d(-${this.offset}px, 0, 0)`,
-          });
-        }
+        this.onDotClick(button);
       });
-    });
+    }
+  }
+
+  onDotClick(button: HTMLElement): void {
+    const position = getFromDataset(button, 'slideOffset');
+
+    if (position !== undefined) {
+      this.offset = Number(position);
+      this.setDotStyles();
+      addInlineStyles(this.sliderTrack, {
+        transform: `translate3d(-${this.offset}px, 0, 0)`,
+      });
+    }
   }
 
   sliderDirection(direction: Direction): void {
     if (direction === 'forward') this.offset += this.slideOffset;
     if (direction === 'backward') this.offset -= this.slideOffset;
 
-    this.handleDotStyles();
+    this.setDotStyles();
     addInlineStyles(this.sliderTrack, {
       transform: `translate3d(-${this.offset}px, 0, 0)`,
     });
