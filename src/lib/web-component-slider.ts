@@ -18,16 +18,16 @@ import {
 } from '../constants';
 
 export class WebComponentSlider extends HTMLElement {
-  private _tx: number;
+  private _offset: number;
   private totalWidth: number;
   private nextBtn: HTMLElement;
   private prevBtn: HTMLElement;
   private sliderTrack: HTMLElement;
   private sliderDots: HTMLElement;
   private sliderSlot: HTMLSlotElement;
-  private widthPerSlider: number;
-  private minTx: number;
-  private maxTx: number;
+  private slideOffset: number;
+  private minOffset: number;
+  private maxOffset: number;
 
   constructor() {
     super();
@@ -47,8 +47,8 @@ export class WebComponentSlider extends HTMLElement {
   }
 
   initSliderConfigs(width: number): void {
-    this.widthPerSlider = width;
-    this.tx = 0;
+    this.slideOffset = width;
+    this.offset = 0;
     this.calcTotalWidth();
     this.setMaxAndMin();
     this.setDotsPosition();
@@ -70,9 +70,9 @@ export class WebComponentSlider extends HTMLElement {
 
   handleDotStyles(): void {
     for (const dot of this.sliderDots.querySelectorAll('button')) {
-      const dotPosition = Number(getFromDataset(dot, 'slidePosition'));
+      const dotPosition = Number(getFromDataset(dot, 'slideOffset'));
 
-      if (dotPosition === this.tx) {
+      if (dotPosition === this.offset) {
         addClass(dot, 'slider-dot-active');
       } else {
         removeClass(dot, 'slider-dot-active');
@@ -84,7 +84,7 @@ export class WebComponentSlider extends HTMLElement {
     for (const [i, dot] of this.sliderDots
       .querySelectorAll('button')
       .entries()) {
-      setOnDataset(dot, 'slidePosition', String(this.widthPerSlider * i));
+      setOnDataset(dot, 'slideOffset', String(this.slideOffset * i));
     }
   }
 
@@ -98,13 +98,13 @@ export class WebComponentSlider extends HTMLElement {
       li.appendChild(button);
       this.sliderDots.appendChild(li);
       addEvent('click', button, () => {
-        const position = getFromDataset(button, 'slidePosition');
+        const position = getFromDataset(button, 'slideOffset');
 
         if (position !== undefined) {
-          this.tx = Number(position);
+          this.offset = Number(position);
           this.handleDotStyles();
           addInlineStyles(this.sliderTrack, {
-            transform: `translate3d(-${this.tx}px, 0, 0)`,
+            transform: `translate3d(-${this.offset}px, 0, 0)`,
           });
         }
       });
@@ -112,12 +112,12 @@ export class WebComponentSlider extends HTMLElement {
   }
 
   sliderDirection(direction: Direction): void {
-    if (direction === 'forward') this.tx += this.widthPerSlider;
-    if (direction === 'backward') this.tx -= this.widthPerSlider;
+    if (direction === 'forward') this.offset += this.slideOffset;
+    if (direction === 'backward') this.offset -= this.slideOffset;
 
     this.handleDotStyles();
     addInlineStyles(this.sliderTrack, {
-      transform: `translate3d(-${this.tx}px, 0, 0)`,
+      transform: `translate3d(-${this.offset}px, 0, 0)`,
     });
   }
 
@@ -134,13 +134,13 @@ export class WebComponentSlider extends HTMLElement {
   }
 
   setMaxAndMin(): void {
-    this.maxTx = this.totalWidth - this.widthPerSlider;
-    this.minTx = 0;
+    this.maxOffset = this.totalWidth;
+    this.minOffset = 0;
   }
 
   calcTotalWidth(): void {
     const slides = getAssignedElements(this.sliderSlot);
-    this.totalWidth = this.widthPerSlider * slides.length;
+    this.totalWidth = this.slideOffset * slides.length - 1;
   }
 
   setSliderTrackWidth(): void {
@@ -154,21 +154,22 @@ export class WebComponentSlider extends HTMLElement {
 
     for (const slide of slides) {
       addInlineStyles(slide, {
-        width: `${this.widthPerSlider}px`,
+        width: `${this.slideOffset}px`,
       });
     }
   }
 
-  set tx(newTx: number) {
-    if (newTx < 0) {
-      this._tx = 0;
+  set offset(newOffset: number) {
+    if (newOffset < 0) {
+      this._offset = 0;
       return;
     }
 
-    if (newTx >= this.minTx && newTx <= this.maxTx) this._tx = newTx;
+    if (newOffset >= this.minOffset && newOffset <= this.maxOffset)
+      this._offset = newOffset;
   }
 
-  get tx(): number {
-    return this._tx;
+  get offset(): number {
+    return this._offset;
   }
 }
