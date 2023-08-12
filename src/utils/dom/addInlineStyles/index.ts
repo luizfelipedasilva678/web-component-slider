@@ -1,8 +1,9 @@
 export const addInlineStyles = (
-  el: HTMLElement,
+  el: HTMLElement | null,
   properties: Partial<CSSStyleDeclaration>
 ): void => {
-  for (const prop in properties) {
-    el.style[prop] = properties[prop] as string;
-  }
+  if (el != null)
+    for (const prop in properties) {
+      el.style[prop] = properties[prop] as string;
+    }
 };

@@ -1,7 +1,8 @@
 export const addEvent = <K extends keyof HTMLElementEventMap>(
   type: K,
-  el: Element,
+  el: Element | null,
   listener: (ev: HTMLElementEventMap[K]) => any
 ): void => {
-  el.addEventListener(type, (e) => listener(e as HTMLElementEventMap[K]));
+  if (el != null)
+    el.addEventListener(type, (e) => listener(e as HTMLElementEventMap[K]));
 };
