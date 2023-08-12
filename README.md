@@ -1,1 +1,1 @@
-# Slider with Web Components
+# Slider with Web Component
