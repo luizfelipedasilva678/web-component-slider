@@ -1,4 +1,4 @@
-import webComponentSliderTemplate from '../templates/web-component-slider-template';
+import webComponentSliderTemplate from '../templates/webComponentSliderTemplate';
 import { getAssignedElements } from '../utils/dom/getAssinedElements';
 import { addInlineStyles } from '../utils/dom/addInlineStyles';
 import { addEvent } from '../utils/dom/addEvent';

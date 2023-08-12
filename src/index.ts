@@ -1,3 +1,3 @@
-import { WebComponentSlider } from './lib/web-component-slider';
+import { WebComponentSlider } from './lib/webComponentSlider';
 
 customElements.define('web-component-slider', WebComponentSlider);
