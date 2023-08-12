@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test": "vitest --silent",
     "preview": "vite preview",
     "prepare": "husky install",
     "create-commit-msg-hook": "husky add .husky/commit-msg 'npx commitlint --edit $1'",
@@ -35,6 +36,9 @@
   "devDependencies": {
     "@commitlint/cli": "^17.6.7",
     "@commitlint/config-conventional": "^17.6.7",
+    "@testing-library/dom": "^9.3.1",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/user-event": "^14.4.3",
     "@types/postcss-pxtorem": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "cssnano": "^6.0.1",
@@ -46,12 +50,14 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "husky": "^8.0.3",
+    "jsdom": "^22.1.0",
     "lint-staged": "^13.2.3",
     "postcss-nested": "^6.0.1",
     "postcss-pxtorem": "^6.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.1.6",
     "vite": "^4.4.5",
-    "vite-plugin-dts": "^3.4.0"
+    "vite-plugin-dts": "^3.4.0",
+    "vitest": "^0.34.1"
   }
 }
